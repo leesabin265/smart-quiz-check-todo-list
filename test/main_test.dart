@@ -60,12 +60,12 @@ void main() {
       expect(s.firstReview(DateTime(2026, 12, 31, 10)), DateTime(2027, 1, 1, 8));
     });
 
-    test('정답은 진급, 오답은 box 0(내일)으로 초기화, 최고 단계는 유지', () {
+    test('정답이면 간격 2배(1→2→4→8일), 오답이면 내일, 최고 단계는 유지', () {
       final now = DateTime(2026, 11, 1, 9);
-      expect(s.next(box: 0, correct: true, now: now), (box: 1, at: DateTime(2026, 11, 4, 8)));
-      expect(s.next(box: 2, correct: true, now: now), (box: 3, at: DateTime(2026, 11, 15, 8)));
+      expect(s.next(box: 0, correct: true, now: now), (box: 1, at: DateTime(2026, 11, 3, 8)));
+      expect(s.next(box: 2, correct: true, now: now), (box: 3, at: DateTime(2026, 11, 9, 8)));
       expect(s.next(box: 3, correct: false, now: now), (box: 0, at: DateTime(2026, 11, 2, 8)));
-      expect(s.next(box: 4, correct: true, now: now).box, 4);
+      expect(s.next(box: 5, correct: true, now: now).box, 5);
     });
 
     test('오늘 자정 전 예약분은 due', () {
@@ -120,7 +120,7 @@ void main() {
       expect(h.sink.has(LogLevel.info, 'push.scheduled'), isTrue);
     });
 
-    test('1일 뒤 출제 → 정답 시 3일 주기로 진급, 오답 시 내일로 초기화', () async {
+    test('1일 뒤 출제 → 정답 시 2일 뒤로 미룸, 오답 시 내일로 초기화', () async {
       final h = _Harness();
       await h.completeStudyTodo('u1');
       await h.drain();
@@ -133,7 +133,7 @@ void main() {
       final ok = await h.api.submit('u1', a.id, a.answerIndex);
       expect(ok.correct, isTrue);
       expect(ok.newBox, 1);
-      expect(ok.nextReviewAt, DateTime(2026, 11, 2, 8));
+      expect(ok.nextReviewAt, DateTime(2026, 11, 1, 8));
 
       final b = today[1].quiz;
       final ng = await h.api.submit('u1', b.id, (b.answerIndex + 1) % b.options.length);
