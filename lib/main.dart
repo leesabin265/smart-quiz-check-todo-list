@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'dart:math' show Random, atan2, cos, max, min, pi, sin, sqrt;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -529,19 +530,13 @@ class HeuristicQuizGenerator implements QuizGenerator {
         distractors.addAll(_tokens(input.memo, exclude: {fact.term, ...distractors, ...definitionWords})
             .take(2 - distractors.length));
       }
-      if (distractors.isEmpty) {
-        quizzes.add({
-          'question': '다음 설명은 옳은가?\n"${fact.term}" = "${_clip(fact.definition, 160)}"',
-          'options': ['O (맞다)', 'X (틀리다)'],
-          'answer_index': 0,
-        });
-      } else {
-        quizzes.add(_mcq(
-          '다음 설명에 해당하는 개념은?\n"${_clip(fact.definition, 200)}"',
-          fact.term,
-          distractors,
-        ));
-      }
+      // 오답 보기를 만들 수 없으면 건너뛴다. 정답이 뻔한 O/X 는 복습 가치가 없다.
+      if (distractors.isEmpty) continue;
+      quizzes.add(_mcq(
+        '다음 설명에 해당하는 개념은?\n"${_clip(fact.definition, 200)}"',
+        fact.term,
+        distractors,
+      ));
     }
 
     if (quizzes.length < 3 && facts.length >= 2) {
@@ -553,7 +548,8 @@ class HeuristicQuizGenerator implements QuizGenerator {
       ));
     }
 
-    if (quizzes.isEmpty) {
+    // 개념 문장이 있는데 퀴즈를 못 만들었다면 빈칸도 설명 속 단어로 채워질 뿐이므로 시도하지 않는다.
+    if (facts.isEmpty) {
       final cloze = _cloze(input.memo);
       if (cloze != null) quizzes.add(cloze);
     }
@@ -1906,13 +1902,17 @@ class _SmartReviewWidgetState extends State<SmartReviewWidget> {
             else ...[
               SizedBox(
                 height: 340,
-                child: PageView.builder(
-                  controller: _pages,
-                  itemCount: ids.length,
-                  onPageChanged: context.read<ReviewController>().onQuizWidgetSlide,
-                  itemBuilder: (_, i) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: QuizFlipCard(key: ValueKey(ids[i]), quizId: ids[i]),
+                // Flutter 기본값은 터치·트랙패드만 드래그를 허용한다. 마우스(web·데스크톱·Chromebook)로도 넘길 수 있게 카드 영역에만 확장.
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+                  child: PageView.builder(
+                    controller: _pages,
+                    itemCount: ids.length,
+                    onPageChanged: context.read<ReviewController>().onQuizWidgetSlide,
+                    itemBuilder: (_, i) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: QuizFlipCard(key: ValueKey(ids[i]), quizId: ids[i]),
+                    ),
                   ),
                 ),
               ),

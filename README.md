@@ -34,6 +34,12 @@ flutter run
 flutter run --profile
 ```
 
+프레임 시간을 숫자로 남기려면 기기를 연결하고 아래를 실행하세요. 결과는 `build/quiz_flip_perf.timeline_summary.json`에 저장되고, 90퍼센타일이 16ms를 넘으면 실패합니다.
+
+```bash
+flutter drive --profile --driver=test_driver/perf_driver.dart --target=integration_test/perf_test.dart
+```
+
 ### 에뮬레이터에서 해볼 시나리오
 
 1. 앱을 켜면 데모 데이터가 들어 있습니다. "HTTP 캐시 헤더 정리"는 어제 완료한 것으로 되어 있어서 오늘의 복습 퀴즈 3개가 상단에 표시됩니다.
@@ -94,7 +100,7 @@ server/        # API Gateway + AI Worker (VPC 내부) — 이 저장소 범위 �
 
 ## 검증
 
-테스트 46개, coverage 96.6%, 브라우저 E2E 결과와 검증하지 못한 항목은 [`docs/VERIFICATION.md`](docs/VERIFICATION.md)에 정리했습니다.
+테스트 48개, coverage 96.6%, 프레임 성능 측정, 브라우저 E2E 결과와 검증하지 못한 항목은 [`docs/VERIFICATION.md`](docs/VERIFICATION.md)에 정리했습니다.
 
 ## 현재 한계
 

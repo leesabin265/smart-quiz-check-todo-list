@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -225,7 +226,7 @@ void main() {
       expect(dump, isNot(contains('보호된 자원의 소유자')));
     });
 
-    test('대체 생성기: 개념 문장이 없으면 빈칸 퀴즈, 개념이 하나뿐이면 O/X 퀴즈', () async {
+    test('대체 생성기: 개념 문장이 없으면 빈칸 퀴즈, 오답 보기를 못 만들면 퀴즈를 만들지 않음', () async {
       const parser = QuizResponseParser();
       final gen = HeuristicQuizGenerator(latency: Duration.zero, seed: 2);
 
@@ -236,9 +237,14 @@ void main() {
       expect(cloze.single.question, contains('_____'));
       expect(cloze.single.question, isNot(contains(cloze.single.options[cloze.single.answerIndex])));
 
-      final ox = parser.parse(await gen.generate('', const PromptGuard().sanitize('t', 'TTL: 남은 수명')));
-      expect(ox.single.options, ['O (맞다)', 'X (틀리다)']);
-      expect(ox.single.answerIndex, 0);
+      final single = parser.parse(await gen.generate('', const PromptGuard().sanitize('t', 'TTL: 남은 수명')));
+      expect(single, isEmpty, reason: '정답이 뻔한 O/X 나 설명 속 단어로 만든 빈칸 퀴즈는 만들지 않음');
+    });
+
+    test('오답 보기를 만들 수 없는 메모는 "퀴즈 소재 부족"(empty) 상태', () async {
+      final h = _Harness();
+      await h.completed('u1', 'TTL: 남은 수명');
+      expect((await h.api.listTodos('u1')).single.quizStatus, QuizGenStatus.empty);
     });
 
     test('PromptGuard: 한국어 injection 과 제어문자 제거', () {
@@ -366,6 +372,13 @@ void main() {
       expect(find.text('복습 주기 초기화 · 내일 다시 출제'), findsOneWidget);
       expect(find.text('다음 복습: 10월 31일 (토) 오전 8시'), findsOneWidget);
       expect(find.text('정답률 0%'), findsOneWidget);
+    });
+
+    testWidgets('마우스 드래그로도 카드 전환', (tester) async {
+      await _pumpApp(tester);
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000, deviceKind: PointerDeviceKind.mouse);
+      await tester.pumpAndSettle();
+      expect(_review(tester).currentIndex, 1);
     });
 
     testWidgets('스와이프로 카드 전환 (onQuizWidgetSlide)', (tester) async {
