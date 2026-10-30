@@ -65,7 +65,8 @@ void main() {
       expect(s.next(box: 0, correct: true, now: now), (box: 1, at: DateTime(2026, 11, 3, 8)));
       expect(s.next(box: 2, correct: true, now: now), (box: 3, at: DateTime(2026, 11, 9, 8)));
       expect(s.next(box: 3, correct: false, now: now), (box: 0, at: DateTime(2026, 11, 2, 8)));
-      expect(s.next(box: 5, correct: true, now: now).box, 5);
+      expect(s.next(box: 4, correct: true, now: now), (box: 5, at: DateTime(2026, 12, 2, 8)));
+      expect(s.next(box: 5, correct: true, now: now), (box: 5, at: DateTime(2026, 12, 2, 8)));
     });
 
     test('오늘 자정 전 예약분은 due', () {

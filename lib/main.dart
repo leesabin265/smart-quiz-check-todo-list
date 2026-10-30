@@ -318,13 +318,13 @@ typedef ImportResult = ({int imported, int skipped});
 
 // ============================================================================
 // Spaced Repetition — Leitner 시스템
-// 맞힐 때마다 간격 2배: box 0..5 → 1, 2, 4, 8, 16, 32일. 오답이면 box 0(내일 다시).
+// 맞힐 때마다 간격 2배: box 0..5 → 1, 2, 4, 8, 16, 31일(최대). 오답이면 box 0(내일 다시).
 // 모든 복습은 해당 날짜 오전 8시(로컬)에 예약된다.
 // ============================================================================
 
 class LeitnerScheduler {
   const LeitnerScheduler({
-    this.intervalsInDays = const [1, 2, 4, 8, 16, 32],
+    this.intervalsInDays = const [1, 2, 4, 8, 16, 31],
     this.reviewHour = 8,
   });
 
