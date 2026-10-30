@@ -525,7 +525,8 @@ class HeuristicQuizGenerator implements QuizGenerator {
           .take(3)
           .toList();
       if (distractors.length < 2) {
-        distractors.addAll(_tokens(input.memo, exclude: {fact.term, ...distractors})
+        final definitionWords = _token.allMatches(fact.definition).map((m) => m.group(0)!);
+        distractors.addAll(_tokens(input.memo, exclude: {fact.term, ...distractors, ...definitionWords})
             .take(2 - distractors.length));
       }
       if (distractors.isEmpty) {
@@ -568,7 +569,8 @@ class HeuristicQuizGenerator implements QuizGenerator {
     for (final sentence in memo.split(_sentenceSplit)) {
       final tokens = _token.allMatches(sentence).map((m) => m.group(0)!).toSet().toList()
         ..sort((a, b) => b.length.compareTo(a.length));
-      if (tokens.isEmpty) continue;
+      // 단어가 너무 적은 문장("오늘 했음")은 빈칸을 뚫어도 의미 없는 퀴즈가 된다.
+      if (tokens.length < 3) continue;
       final answer = tokens.first;
       final distractors = _tokens(memo, exclude: {answer}).take(3).toList();
       if (distractors.isEmpty) continue;
